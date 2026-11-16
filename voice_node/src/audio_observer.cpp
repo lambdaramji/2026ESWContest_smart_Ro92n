@@ -84,7 +84,6 @@ const char* intent_name(Intent intent) {
     case Intent::FAN_OFF: return "FAN_OFF";
     case Intent::IND_OFF: return "IND_OFF";
     case Intent::IND_ON: return "IND_ON";
-    case Intent::IND_SET: return "IND_SET";
     case Intent::IND_UP: return "IND_UP";
     case Intent::IND_DOWN: return "IND_DOWN";
     case Intent::NONE: return "NONE";
@@ -178,7 +177,7 @@ bool consume_frame(const AudioFrame& frame, SpeechVad& vad, whisper_vad_context*
               << " target_similarity=" << command.target
               << " action_similarity=" << command.action
               << " level_similarity=" << command.level_similarity;
-    if (valid && (command.intent == "FAN_SET" || command.intent == "IND_SET")) std::cout << " value=" << command.value;
+    if (valid && command.intent == "FAN_SET") std::cout << " value=" << command.value;
     if (!command.normalized.empty())
       std::cout << " normalized_text=" << std::quoted(command.normalized);
     if (link) std::cout << " link_connected=" << link->connected() << " link_lines=" << link->received_lines();
@@ -816,3 +815,4 @@ int main(int argc, char** argv) {
     return 1;
   }
 }
+

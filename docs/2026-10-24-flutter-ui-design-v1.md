@@ -213,7 +213,7 @@
 
 호출어는 **「하이, 엘지」로 확정** (PM 결정 10/24). 화면 표기는 「하이 LG」. 송신 상태 [문서 PR #107 본문 `4f3b60e`, 10/24]: 하이엘지(SenseVoice) 경로는 **코드상 명시적 `--publish`에서 TCP `voice` 송신이 가능하고, 기본은 발행 끔**이다. 현장 송신은 부정 시험(비명령 36건 + 주변음 300 s에서 실행 0건, #107 PM 결정 A6)과 운영 승인 뒤에 켠다. 「코드로 보낼 수 있음」과 「현장에서 보내도 됨」을 구분한다(수현 리뷰 5). 지원 명령은 `voice` 계약 intent 8종(FAN_SET·FAN_OFF·IND_ON·IND_OFF·IND_UP·IND_DOWN·NONE, voice `v` 2의 IND_SET — D-062)뿐이며 온도·남은 환기 시간·후드 상태 조회는 지원하지 않는다.
 
-intent 문구는 현 `_intentLabel` 유지(FAN_SET value→약/중/강, FAN_OFF, IND_ON/OFF/UP/DOWN). `IND_SET`(D-062, state v 4)은 「인덕션 n단 설정」. 같은 화면의 「후드 n단」과 맞출지는 리뷰 제안으로 남김(§7 #9).
+intent 문구는 현 `_intentLabel` 유지(FAN_SET value→약/중/강, FAN_OFF, IND_ON/OFF/UP/DOWN). `IND_SET`(D-062, state v 4)은 「인덕션 n단 설정」(지금 voice-node는 보내지 않음 — D-067). 같은 화면의 「후드 n단」과 맞출지는 리뷰 제안으로 남김(§7 #9).
 
 **결과 음성 안내** (#176 · #186, 음원과 문구는 [`assets/audio/results/README.md`](../flutter_app/assets/audio/results/README.md)). 「요청을 받았어요」는 소리로 내지 않고, Core가 확정한 최종 설정만 말한다.
 

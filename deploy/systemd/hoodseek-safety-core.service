@@ -16,6 +16,9 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
+# Wi-Fi 절전: Pi 4도 켜져 있었다(11/3 19:13 `Power save: on`, #215). Pi 5와 통신 멈춤을 줄이려고 끈다(Pi 4 쪽 효과는 따로 재지 않음).
+# 실패해도 Core는 그대로 켠다(-). Pi 5는 vision 유닛이 같은 줄로 끈다.
+ExecStartPre=-/usr/sbin/iw dev wlan0 set power_save off
 ExecStart=/data/share/usr/atlas/services/com.atlas.HoodSeekSafetyCore1/safetycore
 Restart=always
 RestartSec=1

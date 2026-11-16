@@ -341,13 +341,13 @@ ATLAS Video `26.06.0-246.scarthgap.s6` / Raspberry Pi 5에서 HDMI 디스플레�
 | 우리 `flutter_app`을 IPK로 빌드할 Docker 컨테이너 미구축 | `02-dev-env-setup` 참고, 일정 합의 필요 | 정인·수현 |
 | Pi4·Pi5 IP가 재부팅마다 바뀜 | 공유기에서 MAC 고정 할당 | 정인 |
 
-**MAC 주소** — 고정 할당용
+**MAC 주소** — 고정 할당용 (공개 전 가림, PM 11/10 — 기기 MAC은 저장소에 적지 않음)
 
 | 기기 | MAC |
 |---|---|
-| 작업 Pi5 | `88:A2:9E:3C:CF:85` |
-| 스페어 Pi5 | `88:A2:9E:3C:CE:CA` |
-| Pi4 | `DC:A6:32:88:FB:FA` |
+| 작업 Pi5 | `<작업 Pi 5 MAC>` |
+| 스페어 Pi5 | `<스페어 Pi 5 MAC>` |
+| Pi4 | `<Pi 4 MAC>` |
 
 ---
 

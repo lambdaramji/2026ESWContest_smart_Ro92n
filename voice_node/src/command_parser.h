@@ -6,7 +6,7 @@
 
 namespace hoodseek::voice {
 
-enum class Intent { FAN_SET, FAN_OFF, IND_OFF, IND_ON, IND_UP, IND_DOWN, NONE, IND_SET };
+enum class Intent { FAN_SET, FAN_OFF, IND_OFF, IND_ON, IND_UP, IND_DOWN, NONE };
 
 struct Command {
   Intent intent;

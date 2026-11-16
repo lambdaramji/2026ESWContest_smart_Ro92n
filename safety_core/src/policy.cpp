@@ -207,7 +207,10 @@ Outputs Policy::tick(const Inputs& in) {
   //    조건을 중간에 끼워 넣으면 우선순위가 바뀌므로 설계서 §3.3과 함께 PR에 근거를 남긴다.
   //    D-054(#65 10/25 확정)·D-059(10/26): 약불 45·중불 50·강불 55 °C는 정상 조리(low·mid·high). 차단(danger)은
   //    절대 고온 또는 「65 °C급 고온 ∧ 과한 연기」뿐이고, 둘 중 하나만이면 warning(팬 3).
-  const double t_metric = in.t_max_c - in.t_median_c;
+  // P_T_ref_c가 있으면 중앙값 대신 고정 기준 — 중앙값은 실내 온도를 따라 움직여 같은 손난로의 metric을 날마다
+  // 0.8–2.7 흔들었고, 손난로 T_max는 날마다 1.1 °C 안에 머물렀다 (#65 10/24·10/25 T3 실측)
+  const double t_metric =
+      p_.P_T_ref_c ? std::max(0.0, in.t_max_c - *p_.P_T_ref_c) : in.t_max_c - in.t_median_c;
   const bool temp_abs = thermal_valid && in.t_max_c >= p_.P_T_abs_danger;
   const bool temp_danger = thermal_valid && t_metric >= p_.P_T_danger;
   const bool temp_high = thermal_valid && t_metric >= p_.P_T_high;

@@ -139,11 +139,14 @@ ssh root@$PI5 'sha256sum /data/edid-1920x1080.bin'
 ssh root@$PI5 'wc -c /sys/class/drm/card*-HDMI-A-*/edid'    # 0이면 케이블 교체 후 다시, 그래도 0이면 다음 줄
 ssh root@$PI5 'mount | grep -q debugfs || mount -t debugfs none /sys/kernel/debug; cat /data/edid-1920x1080.bin > /sys/kernel/debug/dri/0/HDMI-A-1/edid_override; systemctl restart window-manager.service'
 ssh root@$PI5 'iw dev wlan0 set power_save off; iw dev wlan0 get power_save'    # Power save: off (재부팅하면 다시 on)
+ssh root@$PI5 'systemctl stop miracast; pgrep miracast || echo 멈춤'    # 멈춤 (ATLAS 기본 미러링, disable 불가 — 재부팅하면 다시 켜짐)
 ssh root@$PI5 'head -n 1 /sys/class/drm/card0-HDMI-A-1/modes'    # 1920x1080
 ```
 
 - 확인 [실측 10/23, Pi 5]: `/sys/kernel/debug/dri/0/state` → `mode: "1920x1080": 60 148500 1920 2008 2052 2200 1080 1084 1089 1125`, ATLAS 설정 앱 표시 또렷, 터치 위치 정상
-- Wi-Fi 절전: 기본 on이고 재부팅하면 다시 켜집니다. 켜진 상태에서 Pi 5가 네트워크에서 한 번 사라졌습니다 [실측 10/23, `docs/hardware-facts.md` §11, 절전과의 관계는 미확인]
+- Wi-Fi 절전: 기본 on이고 재부팅하면 다시 켜집니다. 켜진 상태에서 Pi 5가 네트워크에서 한 번 사라졌습니다 [실측 10/23, `docs/hardware-facts.md` §11, 그 사라짐과 절전의 관계는 미확인]
+- Wi-Fi 짧은 멈춤(앱 「안전 장치의 응답이 없어요」): 절전 off, 미러링(`miracast.service`) stop, Pi 5 케이스 뚜껑 닫기·Pi 옆 호일 같은 금속 치우기의 앞뒤를 쟀습니다 [실측 11/3, `docs/hardware-facts.md` §11, #215]. vision 유닛이 켤 때 절전 off와 미러링 stop을 함께 합니다(`ExecStartPre`, 실패해도 vision은 켬) [실측 11/4 19:33 Pi 5: 미러링을 켠 채 `systemctl restart hoodseek-vision-node` → journal `Starting HOOD&SEEK vision-node` 19:33:29.147 → `Stopped Atlas Miracast Service` .163 → `Started` .167, `pgrep miracast` 출력 없음, `Power save: off`, `NRestarts=0`. 경로 `/usr/sbin/iw` · `/usr/bin/systemctl`(`command -v`)]. 위 두 줄은 vision보다 먼저 확인할 때 씁니다
+- Pi 5 유선 (11/4~): 공유기 LAN에 꽂고 Wi-Fi를 끈 뒤(`connmanctl disable wifi`), 유선을 Wi-Fi 때 쓰던 주소로 고정했습니다. 그래서 `$PI5`는 그대로입니다. Wi-Fi를 켠 채 유선을 꽂으면 Pi 4로 가는 길이 Wi-Fi로 남습니다. 재부팅 뒤에도 유지됩니다 [실측 11/4, `docs/hardware-facts.md` §11, #215]. 두 연결 설정이 같은 주소라 유선이 꽂힌 채로 Wi-Fi를 켜지 않습니다. 되돌리는 순서와 케이블이 빠졌을 때는 `inbox/김병직/2026-10-19-demo-operations-checklist.md` 3.2절 · 5장 I를 봅니다. 위 Wi-Fi 절전·미러링 줄은 Wi-Fi를 다시 켤 때를 위해 남깁니다
 - 되돌리기: `echo reset > /sys/kernel/debug/dri/0/HDMI-A-1/edid_override` 뒤 window-manager 재시작
 - 터치 USB는 **외부 전원 USB 허브**를 거쳐 연결합니다. Pi 5에 직결하면 USB 과전류로 카메라·마이크까지 끊깁니다 [실측 9/20·10/23, `docs/hardware-facts.md` §8]
 
@@ -174,6 +177,30 @@ ssh root@$PI4 'journalctl -u hoodseek-safety-core -o short-unix -f' > core.log  
 # events.csv: 「안정 45」「끝 45」처럼 Pi 시각(date +%s)으로 한 줄씩
 python3 inbox/정정인/2026-10-24-incense-matrix/tools/t3_summary.py <측정 폴더>
 ```
+
+### 고정 기준 `P_T_ref_c` (선택 키 — PM 채택 11/5, 11/6 시연에 씀, D-069)
+
+`T_metric`이 실내 온도에 흔들리는 것은 중앙값(배경) 때문입니다. 손난로 최고 온도(`max`)는 10/24 → 10/25에 단계마다 1.1 °C 안에 머물렀고, 같은 기간 metric은 0.8–2.7 움직였습니다(11/2에는 앞 회차 남은 열로 55 °C 최고가 세 회차 45.96–48.21 °C로 벌어졌습니다 — 회차 사이 박스를 식힙니다) [실측 `inbox/정정인/2026-11-02-thermal-fixed-ref/README.md`]. profile에 `P_T_ref_c`(°C)를 넣으면 Core는 `T_metric = max(0, T_max − P_T_ref_c)`로 셉니다. 키가 없거나 `null`이면 지금처럼 `T_max − T_median`입니다(저장소 기본 profile에는 없음). 11/6 시연에 쓴 값은 기록용 [`profiles/demo-2026-11-06.json`](../profiles/demo-2026-11-06.json)에 있습니다(D-069).
+
+- 세 경계는 같은 기준으로 다시 정합니다: 중불·강불 = (아래 단계 `max` 최대 + 위 단계 `max` 최소) / 2 − `P_T_ref_c`, 둘째 자리 내림. 10/24·10/25 합친 값은 `P_T_ref_c` 23.0에서 `P_T_mid` 17.46 · `P_T_high` 21.88 (여유 1.32 · 1.23).
+- 위험급 `P_T_danger`는 가운데(50.59 °C)가 아니라 **최고 49.5 °C = 26.50**으로 둡니다(PM 11/2). E2E 3회차처럼 과한 연기가 먼저 오는 회차는 과열 경고가 늦어진 만큼 차단도 늦어지기 때문입니다 — 재생에서 50.59 °C면 3회차 위험이 +23.5 s, 49.5 °C면 +4.0 s 밀립니다. 55 °C 손난로와의 여유는 11/2 최고 48.21 °C 기준 **1.29 °C**입니다(10/24·10/25 최고 47.32 °C 기준이면 2.18 °C).
+- 강불 경계(최고 44.88 °C)도 11/2 55 °C 1·2회차 최고 46.01 · 45.96 °C와 1.08 °C 차이입니다. 대회장이 더 추우면 L3가 강불까지 못 갈 수 있어 11/3 벤치에서 같이 봅니다.
+- 이 키를 넣은 뒤에는 실내 온도가 바뀌어도 세 경계를 다시 재지 않아도 됩니다. 시연 자리에서는 55 °C 손난로 한 번으로 `high`인지만 확인합니다.
+- state `thermal.metric`도 같은 값(`T_max − P_T_ref_c`, 0 미만은 0)이 되어 화면 「온도차」와 기준선이 그대로 맞습니다. 앱 파서와 계약은 metric ≥ 0만 받으므로 Core가 0에서 막습니다. 계약 설명은 `contract-change` 라벨로 고칩니다(`v`는 그대로).
+
+넣기 전 백업과 되돌리기 (Pi 4):
+
+```bash
+# 넣기 전 — 지금 실행본·profile을 해시 이름으로 남김
+cd /data/share/usr/atlas/services/com.atlas.HoodSeekSafetyCore1 && cp safetycore safetycore.bak-$(sha256sum safetycore | cut -c1-8)
+cd /data/hoodseek && cp profile.json profile.json.bak-$(sha256sum profile.json | cut -c1-8)
+# 되돌리기 ① profile만: P_T_ref_c 줄을 지우고 세 경계를 백업 값으로 → SIGHUP (재시작 없음)
+cd /data/hoodseek && cp -p profile.json.bak-<해시8> profile.json.tmp && mv profile.json.tmp profile.json && systemctl kill -s HUP hoodseek-safety-core
+# 되돌리기 ② 실행본까지: 도는 중인 실행 파일은 cp로 덮지 않고(Text file busy) tmp를 거쳐 mv → 재시작 (부팅 유예부터 다시 시작)
+cd /data/share/usr/atlas/services/com.atlas.HoodSeekSafetyCore1 && cp -p safetycore.bak-a08d4378 safetycore.tmp && mv safetycore.tmp safetycore && systemctl restart hoodseek-safety-core
+```
+
+새 실행본은 `P_T_ref_c`가 없으면 지금과 같으므로, profile만 되돌려도(①) 판정은 10/27과 같습니다. 옛 실행본(`a08d4378`)은 이 키를 모르고 무시합니다(로더가 아는 키만 읽음). 그래서 ②로 실행본을 되돌릴 때는 **①로 profile도 함께** 되돌립니다 — 새 경계(max 기준)를 옛 실행본이 max − median으로 읽으면 단계가 틀어집니다.
 
 ### 0. 키 이름 옮기기 + 고양이 감시 키 더하기 (D-059·D-060·D-065, 새 Core를 처음 올릴 때 한 번)
 
@@ -231,6 +258,8 @@ ssh root@$PI4 'systemctl kill -s HUP hoodseek-safety-core && sha256sum /data/hoo
 | 10/27 13:26–13:51 | 17.94 · 22.22 · 25.36 | 2.02 · 0.88 | 22.38–23.40 | `abac4294…` | [실측 정인] 보정 기록(#67) — 강불 여유 0.88로 세 번 중 가장 작아 50 °C·55 °C가 가까움. 55 °C 최대 23.86과 `P_T_danger` 사이가 1.50으로 줄어, 방이 더 시원하면 55 °C에서 과열 warning이 날 수 있음 [추정 — 확인: M3·M8에서 `TEMP_DANGER`가 안 뜨는지] |
 
 ## 인덕션 음성 목표 단수 후보 배포 (#182, 배포 순서)
+
+> **11/3 (D-067, #223): 4·5단계(새 voice-node)는 하지 않는다.** main voice-node가 기기 실행본 `70839f9c`와 같은 v1 7종 코드로 되돌아갔다. 2·3단계의 앱(state v4 수신)·Core(voice v1·2 수신)는 #186(`dec8005`)이 든 기기 빌드(앱 main `20da850`, Core main `5d46120` — 10/27 배포 기록 [#72 6435037453](https://github.com/lambdaramji/HOOD-SEEK/issues/72#issuecomment-6435037453))에 이미 있어 되돌리지 않는다 [문서 `git merge-base --is-ancestor dec8005 20da850`·`5d46120` 둘 다 참]. 다시 넣는 조건은 [`voice_node/README.md`](../voice_node/README.md) 「인덕션 단수 지정(IND_SET) 되돌림」. 11/6 결선 당일 점검에서 운영 voice가 `70839f9c`임을 확인했다 [실측 정인 당일 점검 스크립트, #230 [6743348666](https://github.com/lambdaramji/HOOD-SEEK/issues/230#issuecomment-6743348666)].
 
 이 절은 새 후보의 배포 순서이며 운영 적용 완료를 뜻하지 않는다. `voice IND_SET`은 v2, Core state는 v4로 바뀐다. 기존 실행본의 필수5종 성적을 새 실행본 승인으로 재사용하지 않는다.
 

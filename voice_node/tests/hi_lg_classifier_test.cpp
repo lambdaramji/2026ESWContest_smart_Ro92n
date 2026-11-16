@@ -205,7 +205,7 @@ int main() {
            "하이엘지 후드 팬 11단계로 해줘",
            "하이엘지 후드 팬 11단으로 해줘",
            "하이엘지 후드 팬 -1단계로 해줘",
-           "하이엘지 조명 2단계로 해줘",
+           "하이엘지 인덕션 2단계로 해줘", "하이엘지 조명 2단계로 해줘",
            "하이엘지 후드 2단계로 하지 마", "하이엘지 후드 2단계로 해도 돼?",
            "하이엘지 후드 2단계로 해달라고 했어",
            "하이엘지 후드 2단계로 해주고 인덕션 켜줘",
@@ -214,50 +214,6 @@ int main() {
     if (executable(classify(text))) {
       ++failures;
       std::cerr << "FAIL absolute level boundary: " << text << '\n';
-    }
-  }
-  int induction_level_checks = 0;
-  for (int level = 1; level <= 3; ++level) {
-    const std::string heat = level == 1 ? "약불" : level == 2 ? "중불" : "강불";
-    std::vector<std::string> bodies = {
-        "인덕션 " + heat, "인덕션 " + heat + "해줘",
-        "인덕션을 " + heat + "로 설정해주세요",
-        "인덕션 화력을 " + heat + "로 맞춰줘"};
-    for (const auto &number : numerals[level - 1])
-      for (const auto &unit : std::vector<std::string>{"단", "단계"}) {
-        bodies.push_back("인덕션 " + number + unit + " 해줘");
-        bodies.push_back("인덕션을 " + number + unit + "으로 설정해줘");
-      }
-    for (const auto &body : bodies)
-      for (const auto &ending : std::vector<std::string>{"", "?"}) {
-        ++induction_level_checks;
-        const auto actual = classify("하이엘지 " + body + ending);
-        if (actual.intent != "IND_SET" || actual.value != level) {
-          ++failures;
-          std::cerr << "FAIL induction absolute level: " << body << ending << '\n';
-        }
-      }
-  }
-  for (const auto &text : std::vector<std::string>{
-           "인덕션 약불로 해줘", "인덕션 1단으로 해줘",
-           "하이엘지 인덕션 0단으로 해줘", "하이엘지 인덕션 4단으로 해줘",
-           "하이엘지 인덕션 11단으로 해줘", "하이엘지 인덕션 -1단계로 해줘",
-           "하이엘지 인덕션 1.5단으로 해줘", "하이엘지 인덕션 일단 켜줘",
-           "하이엘지 인덕션 한 단계 올려줘",
-           "하이엘지 인덕션 1단으로 내려줘", "하이엘지 인덕션 3단으로 올려줘",
-           "하이엘지 인덕션 약불로 올려줘", "하이엘지 인덕션 강불로 내려줘",
-           "하이엘지 팬 약불로 해줘", "하이엘지 후드 강불로 해줘",
-           "하이엘지 약불로 해줘",
-           "하이엘지 인덕션 약불로 하지 마", "하이엘지 인덕션 강불로 해도 돼?",
-           "하이엘지 인덕션 중불로 해달라고 했어",
-           "하이엘지 인덕션 약불로 되어 있어?",
-           "하이엘지 인덕션 1단으로 해주고 후드 강풍",
-           "하이엘지 인덕션 약불 중불로 해줘",
-           "하이엘지 인덕션 팬 1단으로 해줘"}) {
-    ++induction_level_checks;
-    if (executable(classify(text))) {
-      ++failures;
-      std::cerr << "FAIL induction absolute boundary: " << text << '\n';
     }
   }
   int punctuation_checks = 0;
@@ -330,7 +286,7 @@ int main() {
       corrected_level.level_similarity < kTargetMinimum)
     ++failures;
   std::cout << "hi_lg_checks=" << cases.size() + aliases.size() + 3 + 24 + boundaries.size() + 3 + punctuation_checks
-            + tuning_checks + level_unit_checks + induction_level_checks
+            + tuning_checks + level_unit_checks
             << " failures=" << failures << '\n';
   return failures ? 1 : 0;
 }

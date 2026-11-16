@@ -59,7 +59,7 @@
                 "valid": { "type": "boolean" },
                 "max_c": { "type": ["number", "null"], "minimum": -40, "maximum": 300 },
                 "median_c": { "type": ["number", "null"], "minimum": -40, "maximum": 300 },
-                "metric": { "type": ["number", "null"], "minimum": 0, "description": "T_metric = max − median (°C), 설계서 §3.1" }
+                "metric": { "type": ["number", "null"], "minimum": 0, "description": "T_metric = max − median (°C), 설계서 §3.1. profile에 P_T_ref_c가 있으면 max(0, max − P_T_ref_c)" }
               },
               "if": { "properties": { "valid": { "const": true } } },
               "then": { "properties": { "max_c": { "type": "number" }, "median_c": { "type": "number" }, "metric": { "type": "number" } } },

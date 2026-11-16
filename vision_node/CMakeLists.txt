@@ -48,4 +48,6 @@ if(BUILD_TESTING AND NOT CMAKE_CROSSCOMPILING)
   add_test(NAME vision_cli COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cli_test.py $<TARGET_FILE:hoodseek_vision>)
   # PC-side #49 analysis tool; needs python3 cv2 + numpy.
   add_test(NAME vision_table COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/detection_table_test.py)
+  # PC-side #215 scene check counts; reuses detection_table, so the same python3 cv2 + numpy.
+  add_test(NAME vision_scene COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/scene_stats_test.py)
 endif()

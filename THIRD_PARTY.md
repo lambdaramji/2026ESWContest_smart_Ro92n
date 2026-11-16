@@ -29,7 +29,7 @@ Team Ro92n이 작성한 코드와 문서는 [MIT 라이선스](LICENSE)입니다
 | COCO 2017 val 이미지·주석 | `vision_node/tools/train/` | 학습 데이터와 떼어 둔 회귀 평가용 |
 | PyTorch, onnx, onnx2tf, TensorFlow 2.19 등 pip 패키지 | `vision_node/tools/train/` | `tools/train/README.md`의 설치 명령 |
 | v3e 고양이·사람 검출 가중치 | `vision_node/` | YOLOX-S 사전학습 가중치에서 미세조정, 학습 데이터에 COCO 포함. 사람 사진으로 학습해 저장소·Release에 넣지 않음. sha256과 보관 위치는 [`deploy/README.md`](deploy/README.md) 파일 표 |
-| LG ATLAS SDK·ECO.AI 런타임, LG 글꼴·브랜드 자산 | 전체 | LG 제공 자료라 저장소에 넣지 않음(D-047·D-063, `FONT_DIR`) |
+| LG ATLAS SDK·ECO.AI 런타임, LG 글꼴·브랜드 자산 | 전체 | LG 제공 자료라 저장소에 넣지 않음(D-047·D-063, `FONT_DIR`). 예외: 결선 발표 자료 PDF(`docs/assets/2026-11-06-final-presentation.pdf`)에는 LG전자 로고와 LG 글꼴 서브셋(쓴 글자만)이 박혀 있음(D-070) |
 | jsonschema 4.23.0 | `contracts/validate.py` | 계약 검증 도구(CI) |
 
 쿡탑은 실제 인덕션이 아니라 ESP32와 LED 판으로 만든 **시뮬레이터**입니다(불변식 ⑧).

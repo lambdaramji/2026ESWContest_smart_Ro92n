@@ -336,7 +336,7 @@ Mac에서 `pio run`으로 빌드(RAM 6.6%, Flash 20.9%) → `esptool merge_bin`�
 
 ```
 Chip is ESP32-D0WDQ6 (revision v1.0)
-MAC: 24:0a:c4:a6:64:5c
+MAC: <ESP32 MAC — 공개 전 가림>
 Wrote 339712 bytes (165801 compressed) at 0x00000000 in 14.7 seconds (effective 185.2 kbit/s)...
 Hash of data verified.
 ```

@@ -438,6 +438,78 @@ void smoke_raises_fan_floor() {
 }
 
 // D-054: 약불·중불·강불은 연기가 어떻게 나든 정상 조리 — 잠그지 않고, 재실 중 인덕션을 내리지 않는다.
+// P_T_ref_c: 고정 기준 온도를 빼면 실내 온도(중앙값)가 바뀌어도 같은 손난로는 같은 단계다. 키가 없으면 지금 그대로
+void fixed_reference_ref_c() {
+  CHECK(!g_profile.P_T_ref_c);  // 저장소 기본 profile에는 없음 → 동작이 바뀌지 않는다
+  Profile p = g_profile;
+  p.P_T_ref_c = kAmbientC;
+  {
+    Sim s(p);
+    s.warm_up();
+    s.t_max = kAmbientC + p.P_T_high + 0.5;  // 강불 손난로
+    s.step();
+    CHECK(s.out.hazard == Hazard::kHigh);
+    s.t_median = kAmbientC - 6.0;  // 방이 6 °C 추워져도 손난로 최고 온도는 그대로
+    for (int i = 0; i < ticks(p.P_release_danger_s + 1.0); ++i) {
+      s.step();
+      CHECK(s.out.hazard == Hazard::kHigh);
+      CHECK(s.out.t_metric && std::fabs(*s.out.t_metric - (p.P_T_high + 0.5)) < 1e-9);
+    }
+    s.t_max = kAmbientC - 1.0;  // 기준보다 낮으면 metric 0 (계약 minimum 0)
+    for (int i = 0; i < ticks(p.P_release_s + 1.0); ++i) s.step();
+    CHECK(s.out.t_metric && *s.out.t_metric == 0.0);
+    CHECK(s.out.hazard == Hazard::kLow);
+  }
+  {
+    Sim s;  // 비교: 키가 없으면 같은 상황에서 중앙값이 내려간 만큼 metric이 올라 과열로 오른다
+    s.warm_up();
+    s.t_max = kAmbientC + s.p.P_T_high + 0.5;
+    s.step();
+    CHECK(s.out.hazard == Hazard::kHigh);
+    s.t_median = kAmbientC - 6.0;
+    s.step();
+    CHECK(s.p.P_T_high + 6.5 < s.p.P_T_danger || s.out.hazard == Hazard::kWarning);
+  }
+  {
+    Sim s(p);  // 차가운 빈 장면(추운 홀, 손난로 없음): T_max가 기준보다 낮아도 metric은 0 아래로 안 간다.
+    s.t_median = 12.0;  //   앱 파서·계약이 metric ≥ 0만 받아, 음수면 state를 통째로 버려 3 s 뒤 「연결 끊김」이 된다
+    for (double t_max = 12.5; t_max < kAmbientC; t_max += 0.5) {
+      s.t_max = t_max;
+      s.step();
+      CHECK(s.out.t_metric && *s.out.t_metric >= 0.0);
+      CHECK(s.out.hazard == Hazard::kLow);
+    }
+    CHECK(s.out.t_metric && *s.out.t_metric == 0.0);
+  }
+  {
+    Sim s(p);  // 절대 고온은 기준과 상관없이 T_max로 본다
+    s.warm_up();
+    s.t_max = p.P_T_abs_danger + 1.0;
+    s.step();
+    CHECK(s.out.hazard == Hazard::kDanger && has(s.out.reasons, Reason::kTempAbs));
+  }
+  // 로더: 숫자·범위만 받는다. null은 없는 것과 같다
+  const auto load_with = [](const std::string& value, Profile& out, std::string& err) {
+    std::ifstream in(HOODSEEK_DEFAULT_PROFILE);
+    std::stringstream buf;
+    buf << in.rdbuf();
+    std::string text = buf.str();
+    text.insert(text.find('{') + 1, "\n  \"P_T_ref_c\": " + value + ",");
+    const std::string path = "ref_c_test_profile.json";
+    std::ofstream(path) << text;
+    const bool ok = load_profile(path, out, err);
+    std::remove(path.c_str());
+    return ok;
+  };
+  Profile q{};
+  std::string err;
+  CHECK(load_with("23.5", q, err) && q.P_T_ref_c && *q.P_T_ref_c == 23.5);
+  CHECK(load_with("null", q, err) && !q.P_T_ref_c);
+  CHECK(!load_with("\"23\"", q, err));
+  CHECK(!load_with("-1", q, err));
+  CHECK(!load_with("61", q, err));
+}
+
 void cooking_tiers_never_lock() {
   const Profile& p = g_profile;
   for (const double m : {p.P_T_mid - 1.0, p.P_T_mid + 0.5, p.P_T_high + 0.5}) {
@@ -1494,6 +1566,7 @@ int main() {
       {"m2_caution", m2_caution},
       {"m3_strong_heat_keeps_induction", m3_strong_heat_keeps_induction},
       {"heat_tiers_d059", heat_tiers_d059},
+      {"fixed_reference_ref_c", fixed_reference_ref_c},
       {"m4_voice_fan", m4_voice_fan},
       {"m5_voice_induction", m5_voice_induction},
       {"voice_absolute_induction", voice_absolute_induction},

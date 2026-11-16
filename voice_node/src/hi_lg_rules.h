@@ -10,20 +10,7 @@ struct Rule {
   bool default_fan_on = false;
 };
 inline const std::vector<Rule> &rules() {
-  const auto induction_set = [](const std::string &heat,
-                                const std::string &number) {
-    const std::string setting =
-        "(?:으로|로)?(?:좀)?(?:해|설정해|맞춰|바꿔)(?:줘|주세요|줄래(?:요)?)?";
-    // 숫자는 설정 동사를 요구한다. '인덕션 일단 켜'의 연결말을 단수로
-    // 추측하거나, 목표 단수와 올림/내림을 함께 해석하지 않는다.
-    return std::regex("인덕션(?:을|를|은|는|의)?(?:(?:화력|불세기)(?:을|를|은|는|의)?)?"
-                      "(?:" + heat + "(?:" + setting + ")?|" + number + "단" +
-                      setting + ")");
-  };
   static const std::vector<Rule> r = {
-      {induction_set("약불", "(?:1|일|한)"), "IND_SET", 1},
-      {induction_set("중불", "(?:2|이|두)"), "IND_SET", 2},
-      {induction_set("강불", "(?:3|삼|세)"), "IND_SET", 3},
       {std::regex("(?:후드(?:을|를|은|는|의)?(?:팬(?:을|를|은|는|의)?)?|팬(?:"
                   "을|를|은|는|의)?)(?:전원(?:을|를|은|는|의)?)?(?:좀)?(?:켜(?:"
                   "줘|주세요|줄래(?:요)?)?|켜세요)"),

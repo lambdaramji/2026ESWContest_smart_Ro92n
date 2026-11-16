@@ -90,6 +90,9 @@ struct Profile {
   int P_fan_min_high;         // 강불(high). 과열·과한 연기(warning)·위험은 불변식이라 3 고정
   int P_ind_max_absent;       // 부재(unknown 포함) ∧ hazard ≥ mid이면 induction ≤ 이 값 (D-040 ③ → D-054)
   double P_alert_hold_s;      // alert를 NONE으로 되돌리기 전 유지 시간
+  // 선택 키. 있으면 T_metric = max(0, T_max − 이 값) — 화면 중앙값(실내·박스 온도) 대신 고정 기준을 빼서
+  // 실내 온도가 바뀌어도 세 경계를 다시 재지 않게 한다. 없으면 지금처럼 T_max − T_median (설계서 §3.1)
+  std::optional<double> P_T_ref_c;
 };
 
 // Core가 tick마다 Snapshot에서 복사한다. *_ms는 Core monotonic 시계(ms), 0 = 아직 없음.

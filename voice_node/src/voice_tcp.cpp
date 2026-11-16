@@ -37,7 +37,6 @@ const char* intent_name(Intent intent) {
     case Intent::FAN_OFF: return "FAN_OFF";
     case Intent::IND_OFF: return "IND_OFF";
     case Intent::IND_ON: return "IND_ON";
-    case Intent::IND_SET: return "IND_SET";
     case Intent::IND_UP: return "IND_UP";
     case Intent::IND_DOWN: return "IND_DOWN";
     case Intent::NONE: return "NONE";
@@ -60,8 +59,8 @@ std::string json_text(std::string_view text) {
   return out + '"';
 }
 
-std::string envelope(std::string_view type, std::uint32_t seq, std::uint64_t t_ms, int version = 1) {
-  return "{\"v\":" + std::to_string(version) + ",\"type\":\"" + std::string(type) +
+std::string envelope(std::string_view type, std::uint32_t seq, std::uint64_t t_ms) {
+  return "{\"v\":1,\"type\":\"" + std::string(type) +
          "\",\"src\":\"voice\",\"seq\":" + std::to_string(seq) +
          ",\"t_ms\":" + std::to_string(t_ms) + ",\"p\":";
 }
@@ -81,9 +80,9 @@ std::optional<std::string> voice_line(std::string_view text, double conf,
     const auto recognized = hi_lg::classify(std::string(text));
     if (recognized.intent == "DROP") return std::nullopt;
     for (const auto intent : {Intent::FAN_SET, Intent::FAN_OFF, Intent::IND_OFF,
-                              Intent::IND_ON, Intent::IND_UP, Intent::IND_DOWN, Intent::NONE, Intent::IND_SET}) {
+                              Intent::IND_ON, Intent::IND_UP, Intent::IND_DOWN, Intent::NONE}) {
       if (recognized.intent == intent_name(intent))
-        command = Command{intent, (intent == Intent::FAN_SET || intent == Intent::IND_SET) ? std::optional<int>(recognized.value)
+        command = Command{intent, intent == Intent::FAN_SET ? std::optional<int>(recognized.value)
                                                            : std::nullopt};
     }
     final_text = recognized.normalized;
@@ -99,8 +98,7 @@ std::optional<std::string> voice_line(std::string_view text, double conf,
   std::ostringstream score;
   score.imbue(std::locale::classic());
   score << std::setprecision(4) << conf;
-  auto line = envelope("voice", seq, t_ms, command->intent == Intent::IND_SET ? 2 : 1) +
-              "{\"intent\":\"" + intent_name(command->intent) + '"';
+  auto line = envelope("voice", seq, t_ms) + "{\"intent\":\"" + intent_name(command->intent) + '"';
   if (command->value) line += ",\"value\":" + std::to_string(*command->value);
   line += ",\"text\":" + json_text(final_text) + ",\"conf\":" + score.str() + "}}\n";
   if (line.size() > kMaxLine) return std::nullopt;

@@ -77,20 +77,6 @@ int self_test() {
         hi_lg->find("\"text\":\"하이엘지, 불 색이 내려줘\"") != std::string::npos &&
         hi_lg->find("\"conf\":0") != std::string::npos, "HiLg final text and unavailable score");
   check(!voice_line("하이엘지 후드 강풍", .7, 1, 1, Activation::HiLg), "HiLg cannot invent ASR score");
-  for (int level = 1; level <= 3; ++level) {
-    const std::string heat = level == 1 ? "약불" : level == 2 ? "중불" : "강불";
-    for (const auto& body : {"인덕션 " + std::to_string(level) + "단계로 해줘",
-                             "인덕션 " + heat + "로 해줘"}) {
-      const auto line = voice_line("하이엘지 " + body, 0, 3, 99, Activation::HiLg);
-      check(line && line->find("{\"v\":2,") == 0 &&
-            line->find("\"intent\":\"IND_SET\",\"value\":" + std::to_string(level)) != std::string::npos,
-            "HiLg absolute induction uses voice v2 and a bounded value");
-    }
-  }
-  check(!is_valid_command({Intent::IND_SET, std::nullopt}), "IND_SET requires value");
-  for (int value : {-1, 0, 1, 2, 3, 4})
-    check(is_valid_command({Intent::IND_SET, value}) == (value >= 1 && value <= 3),
-          "IND_SET bounds without clamping");
   check(!voice_line("후드 강풍", 0, 1, 1, Activation::HiLg), "HiLg sender requires its activation");
   const auto legacy = voice_line("하이엘지 후드 강풍", 0, 1, 1);
   check(legacy && legacy->find("\"intent\":\"NONE\"") != std::string::npos,

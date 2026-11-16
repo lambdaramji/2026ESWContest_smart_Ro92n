@@ -224,7 +224,6 @@ bool is_damaged_fan_text(std::string_view text) {
 bool is_valid_command(const Command& command) {
   switch (command.intent) {
     case Intent::FAN_SET:
-    case Intent::IND_SET:
       return command.value && *command.value >= 1 && *command.value <= 3;
     case Intent::FAN_OFF:
     case Intent::IND_OFF:

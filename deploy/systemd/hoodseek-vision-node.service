@@ -27,6 +27,11 @@ EnvironmentFile=/data/hoodseek/vision-node.env
 Environment=LLVM_PROFILE_FILE=/dev/null
 # Per-frame records go to /dev/null (SafetyCore logs every tick); faults still reach the journal via stderr.
 # $PREVIEW_ARGS unbraced: unset or empty in an older env file adds no argument, so the video stays off.
+# Wi-Fi 절전이 켜져 있으면 Pi 4 → Pi 5 지연이 1 s 가까이 튄다 [실측 11/3 최대 954 ms → off 93 ms, #215]. 실패해도 vision은 그대로 켠다(-).
+ExecStartPre=-/usr/sbin/iw dev wlan0 set power_save off
+# ATLAS 기본 미러링(miracast.service, Wi-Fi Direct)이 돌면 Pi 5 Wi-Fi가 4–5 s마다 1–2 s씩 멈췄다 [실측 11/3 #215].
+# /etc가 읽기 전용이라 disable이 안 돼 부팅마다 다시 켜진다 → vision을 켤 때 멈춘다. --no-block: 멈춤을 기다리지 않는다.
+ExecStartPre=-/usr/bin/systemctl --no-block stop miracast.service
 ExecStart=/data/hoodseek/bin/hoodseek_vision --camera /dev/video0 --model /data/ecoai/assets/models/object_detection/yolox.tflite --threads ${THREADS} --rotate ${ROTATE} --core ${CORE} --roi ${ROI} --output /dev/null $PREVIEW_ARGS
 Restart=always
 RestartSec=1

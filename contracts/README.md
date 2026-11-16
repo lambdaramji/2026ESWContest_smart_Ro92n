@@ -31,7 +31,7 @@
 
 공통 envelope: `{"v":<버전>,"type":"<type>","src":"<src>","seq":<0..4294967295>,"t_ms":<0 이상>,"p":{...}}` — 6개 필드 모두 필수, 그 밖의 필드는 금지(`additionalProperties: false`). 예제는 [examples/](examples/).
 
-`v`는 메시지 종류마다 따로 정합니다: **`state` 4(#182), `ui_cmd` 2(`USER_LOCK`만), `voice` 1·2(`IND_SET`은 2), `hello`·`vision` 1** (#116 2026-10-24, D-058 2026-10-26). Core는 `ui_cmd`를 `v` 1·2로 받고(USER_LOCK은 `v` 2에서만) `voice`는 `v` 1·2로 받되 새 `IND_SET`은 `v` 2에서만 받고, `hello`·`vision`은 `v` 1로만 받습니다. Flutter는 옛 세 명령을 `v` 1로, USER_LOCK만 `v` 2로 보내고, state `v` 1·2·3·4를 모두 받습니다(`v` 1이면 남은 초 없음).
+`v`는 메시지 종류마다 따로 정합니다: **`state` 4(#182), `ui_cmd` 2(`USER_LOCK`만), `voice` 1·2(`IND_SET`은 2, 지금 voice-node는 `v` 1만 보냄 — D-067), `hello`·`vision` 1** (#116 2026-10-24, D-058 2026-10-26). Core는 `ui_cmd`를 `v` 1·2로 받고(USER_LOCK은 `v` 2에서만) `voice`는 `v` 1·2로 받되 새 `IND_SET`은 `v` 2에서만 받고, `hello`·`vision`은 `v` 1로만 받습니다. Flutter는 옛 세 명령을 `v` 1로, USER_LOCK만 `v` 2로 보내고, state `v` 1·2·3·4를 모두 받습니다(`v` 1이면 남은 초 없음).
 
 ## allowlist
 
@@ -65,7 +65,7 @@ UI 문구는 앱 `reasonLabel`(`flutter_app/lib/screens/labels.dart`)과 같습�
 |---|---|---|---|
 | `SENSOR_FAULT` | 열화상 또는 PM 센서 읽기 실패 3 s → hazard=fault | §3.3 1, F4 | 센서 고장 |
 | `TEMP_ABS` | `T_max ≥ P_T_abs_danger` | §3.3 2 | 절대 고온 |
-| `TEMP_DANGER` | `T_metric ≥ P_T_danger` (65 °C급 고온). 단독이면 hazard warning, `SMOKE`와 함께면 danger (D-054) | §3.3 3·4 | 과열 |
+| `TEMP_DANGER` | `T_metric ≥ P_T_danger` (65 °C급 고온. `T_metric`은 `thermal.metric`과 같은 값 — `P_T_ref_c`가 있으면 `max − P_T_ref_c`). 단독이면 hazard warning, `SMOKE`와 함께면 danger (D-054) | §3.3 3·4 | 과열 |
 | `SMOKE` | 과한 연기: 팬 3단인 동안 SPS30 포화가 `P_heavy_smoke_samples` 연속, 확정 뒤 `PM_delta < P_PM_smoke`면 해제. 단독이면 warning, `TEMP_DANGER`와 함께면 danger (D-054) | §3.3 3·4 | 연기 많음 |
 | `TEMP_HIGH` | `T_metric ≥ P_T_high` (강불, hazard high) | §3.3 5 | 강불 |
 | `PM_WARN` | 연기 있음: `PM_delta ≥ P_PM_warn ∧ (tsize < P_tsize ∨ 포화)`가 새 샘플 `P_smoke_samples` 연속이면 시작, 그 뒤 Δ만 봄. **hazard를 바꾸지 않음** (D-054) | §3.3 (표시) | 연기 있음 |
@@ -139,11 +139,14 @@ python3 -m venv ~/.venvs/hoodseek-contracts                       # 처음 한 �
 - 동결(10/20 18:00) 후 변경은 PR + envelope `v` 증가 + **송신·수신 양쪽 파서 동반**, 라벨 `contract-change`, PM 승인.
 - v1 최초 반입(#52)은 스키마·예제만 넣습니다. 파서는 #47(Core), #51·#63(Flutter), #61(vision), #62(voice)에서 구현합니다.
 - state v 2 (#116, PM 결정 2026-10-24): `p.lock_release_left_s`·`p.thresholds.lock_release_s` 추가. state만 올리고 입력 4종은 v 1 그대로 둡니다. state를 읽는 쪽은 Flutter뿐입니다. **배포 순서: Pi 5 Flutter(v 1·v 2 수신) 먼저, 그다음 Pi 4 Core.** 옛 Flutter(v 1만 수신)가 켜진 채 Core를 먼저 올리면 state를 전부 버려 화면이 「연결 끊김」이 됩니다(#119 정인 리뷰). vision-node는 state 줄을 읽고 버리고(`vision_node/src/link.cpp` `drain`), voice-node는 해석하지 않습니다.
+- `thermal.metric` 설명 (P_T_ref_c, 제안 2026-11-02, **합의 필요**): profile에 `P_T_ref_c`가 있으면 Core가 `max(0, max − P_T_ref_c)`를 보냅니다. 타입·범위(`minimum` 0)·필드가 그대로라 `v`는 올리지 않습니다 — 올리면 state v 1–4만 받는 지금 앱이 state를 버립니다. 0 미만은 Core가 0으로 막습니다(`policy_test` `fixed_reference_ref_c` 차가운 빈 장면).
 - state v 3 · ui_cmd v 2 (D-058, PM 결정 2026-10-26): 사용자 잠금. `ui_cmd`에 `USER_LOCK`(1·0, `v` 2만), state `lock`에 `locked_user`. 나머지 필드는 그대로. **배포 순서: Pi 5 Flutter(state v 1~3 수신, 옛 명령은 v 1로 송신) 먼저, 그다음 Pi 4 Core.** 새 앱 + 옛 Core 사이에는 터치가 그대로 되고 「인덕션 잠그기」만 Core가 거부(폐기)한다. 옛 앱 + 새 Core면 state v 3을 버려 「연결 끊김」이 되므로 이 순서를 지킨다.
 - state v 3 추가(D-059, PM 결정 2026-10-26, #160과 같은 v 3 — 배포 전 확정): hazard를 `low`·`mid`·`high`(정상 조리)·`warning`·`danger`·`fault`로 나눔, 사유 `TEMP_HIGH`·`TEMP_MID`, 임계 사본 `t_mid`·`t_high`. 프로파일 키도 `P_T_mid`·`P_T_high`·`P_fan_min_mid`·`P_fan_min_high`·`P_ind_max_absent`로 바꿈 — **새 Core를 올리기 전에 Pi 4 `profile.json` 키 이름을 옮겨야 함**(deploy/README 「현장 보정」 0단계). 앱은 v 1·2의 옛 이름을 새 이름으로 읽으므로 앱 먼저 올리는 순서는 그대로.
 
 
 ## 인덕션 목표 단수 확장 — #182
+
+> **11/3 (D-067, #223):** voice-node의 `IND_SET` 송신은 뺐다. 아래 스키마·예제·Core·Flutter 수신은 그대로이고 계약 `v`는 바뀌지 않는다. 다시 넣는 조건은 [`voice_node/README.md`](../voice_node/README.md) 「인덕션 단수 지정(IND_SET) 되돌림」.
 
 voice v2·state v4 및 새 음원 문구는 #186의 PM 승인(2026-10-26)으로 확정했다. 운영 발행은 별도 현장 확인 뒤에 허용한다. #107에서 확정한 기존 일곱 intent는 그대로 v1로 보낸다.
 

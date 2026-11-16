@@ -138,8 +138,6 @@ inline std::string name(hoodseek::voice::Intent i) {
     return "FAN_OFF";
   case I::IND_ON:
     return "IND_ON";
-  case I::IND_SET:
-    return "IND_SET";
   case I::IND_OFF:
     return "IND_OFF";
   case I::IND_UP:
@@ -213,9 +211,6 @@ inline Command semantic(const std::string &body) {
   static const std::regex fan_target("팬|풍량|바람|약풍|중풍|강풍");
   if (c.find("인덕션") != std::string::npos && std::regex_search(c, fan_target))
     return {"NONE", 0, "multiple_device_targets"};
-  static const std::regex heat_level("약불|중불|강불");
-  if (std::regex_search(c, heat_level) && !starts(c, "인덕션"))
-    return {"NONE", 0, "induction_target_required"};
   // Closed ASR alias for the complete fan-off request; never rewrite 거 globally.
   if (c == "팬거" || c == "팬꺼" || c == "페꺼" || c == "패꺼") {
     Command result{"FAN_OFF", 0, "fan_off_asr_alias"};

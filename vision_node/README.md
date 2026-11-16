@@ -17,11 +17,12 @@
 | `src/v4l2_camera.{hpp,cpp}` | V4L2 mmap YUYV 읽기, 가장 새 프레임만 씀, 180° 회전 |
 | `src/latest_frame.hpp` | 카메라 읽기 스레드 → 추론 루프. 가장 새 프레임 한 장만 넘긴다(쌓지 않음) |
 | `src/preview.{hpp,cpp}` | 카메라 카드 영상: 127.0.0.1 HTTP MJPEG (`--preview-port`일 때만) |
-| `config/roi.json` | 조리면(LED 판 + 한 칸) 다각형. 기기 사본의 정본 |
-| `tests/` | `vision_tests.cpp`(단위), `preview_tests.cpp`(영상 루프백), `cli_test.py`(프로세스·TCP), `detection_table_test.py` |
+| `config/roi.json` | 시연 박스 범위 다각형(#159, 10/26 — 그 전은 조리면 LED 판 + 한 칸). 기기 사본의 정본 |
+| `tests/` | `vision_tests.cpp`(단위), `preview_tests.cpp`(영상 루프백), `cli_test.py`(프로세스·TCP), `detection_table_test.py`, `scene_stats_test.py` |
 | `tools/roi_click.py` | 화면을 찍어 `roi.json`을 만든다 (`--points`로 숫자 입력도 됨) |
 | `tools/live_view.py` | PC 카메라 또는 Pi 5 영상을 ROI와 함께 본다 |
 | `tools/measure.sh`, `tools/detection_table.py` | #49·Q8 측정과 표 만들기 |
+| `tools/scene_check.sh`, `tools/scene_stats.py` | #215 현장 점검. 서비스 인자 그대로 N장 기록(사진 없음) → 빈 장면 사람 점수·인형 hit을 Core 판정값으로 셈 |
 | `tools/train/` | YOLOX-S 미세조정·변환 파이프라인 |
 
 ## 동작

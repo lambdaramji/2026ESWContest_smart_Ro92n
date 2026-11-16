@@ -80,6 +80,15 @@ bool load_profile(const std::string& path, Profile& out, std::string& err) {
     }
     p.*k.field = static_cast<int>(v);
   }
+  // 선택 키: 없거나 null이면 T_metric = max − median 그대로. 있으면 실내 온도 범위의 숫자여야 한다
+  if (j.contains("P_T_ref_c") && !j["P_T_ref_c"].is_null()) {
+    const double v = j["P_T_ref_c"].is_number() ? j["P_T_ref_c"].get<double>() : NAN;
+    if (!std::isfinite(v) || v < 0 || v > 60) {
+      err = "P_T_ref_c: 0..60 숫자가 아님";
+      return false;
+    }
+    p.P_T_ref_c = v;
+  }
   if (!(p.P_T_mid < p.P_T_high && p.P_T_high < p.P_T_danger)) {
     err = "P_T_mid < P_T_high < P_T_danger 순서가 아님";
     return false;

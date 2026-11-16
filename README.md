@@ -126,7 +126,7 @@ Pi 5 ↔ Pi 4는 TCP :7420 line-JSON(한 줄에 JSON 메시지 하나), Pi 4 →
 
 | 도구 | 버전 | 어디에 쓰나 |
 |---|---|---|
-| Flutter | CI: stable 채널 · 기기 빌드: 3.27.4(ATLAS 엔진 고정) | `flutter_app/` |
+| Flutter | CI: 3.47.8 고정(stable 3.50부터 `material.dart` 폐기 예정 경고로 analyze 실패) · 기기 빌드: 3.27.4(ATLAS 엔진 고정) | `flutter_app/` |
 | Dart SDK | `>=3.5.0 <4.0.0` | `flutter_app/pubspec.yaml` |
 | CMake | 3.14 이상(`vision_node/`는 3.16, `voice_node/`는 3.20 이상) | SafetyCore·vision·voice 빌드와 시험 |
 | C++ 컴파일러 | C++17 | 위와 같음 |
@@ -350,7 +350,7 @@ Must 시나리오 8개를 E2E로 3회 통과했습니다(2026-10-26 ~ 10-27). �
 
 - Team Ro92n이 작성한 코드와 문서는 [MIT 라이선스](LICENSE)로 공개합니다. 저장소에 포함된 외부 코드·글꼴·음원은 각자의 라이선스를 따르며 [THIRD_PARTY.md](THIRD_PARTY.md)에 정리했습니다.
 - 데모 GIF와 발표 자료 PDF(`docs/assets/`)에는 LG전자 로고가, 발표 자료와 대본에는 ThinQ 표기가 나옵니다(D-068 · D-070). 로고와 ThinQ는 LG전자의 상표이며, 발표 자료 PDF에 박힌 LG 글꼴(쓴 글자만)과 함께 MIT 라이선스 대상이 아닙니다.
-- 공개 저장소 [`lambdaramji/2026ESWContest_smart_Ro92n`](https://github.com/lambdaramji/2026ESWContest_smart_Ro92n)는 비공개 개발 저장소의 태그를 한 커밋씩 옮긴 것입니다(D-064). 첫 커밋은 `v1.0.0-submission`(2026-10-27 코드 프리즈) 제출본이고, 그 위의 `v1.1.0`은 11/6 결선 기준 최종 정리(결선 묶음 기록 D-069, 리허설 · 결선 기록)입니다. 처음 이름 `HOOD-and-SEEK`로 들어와도 GitHub가 새 이름으로 넘겨 줍니다. 시연 영상은 [youtu.be/PRvTln311Lc](https://youtu.be/PRvTln311Lc)입니다.
+- 공개 저장소 [`lambdaramji/2026ESWContest_smart_Ro92n`](https://github.com/lambdaramji/2026ESWContest_smart_Ro92n)는 비공개 개발 저장소의 태그를 한 커밋씩 옮긴 것입니다(D-064). 첫 커밋은 `v1.0.0-submission`(2026-10-27 코드 프리즈) 제출본이고, 그 위의 `v1.1.0`은 11/6 결선 기준 최종 정리(결선 묶음 기록 D-069, 리허설 · 결선 기록), `v1.1.1`은 CI의 Flutter 버전 고정(앱 코드 변경 없음)입니다. 처음 이름 `HOOD-and-SEEK`로 들어와도 GitHub가 새 이름으로 넘겨 줍니다. 시연 영상은 [youtu.be/PRvTln311Lc](https://youtu.be/PRvTln311Lc)입니다.
 - 문서 속 `#번호`(이슈·PR) 링크와 커밋 해시는 비공개 개발 저장소 기준이라 공개 저장소에서는 열리지 않습니다. 사용을 마친 문서를 모아 둔 아카이브(`docs/archive/`·`inbox/archive/`)는 공개본에 넣지 않아, 그쪽을 가리키는 링크도 열리지 않습니다. 팀원별 기여는 [CONTRIBUTORS.md](CONTRIBUTORS.md)와 커밋의 공동 작성자 표기로 확인할 수 있습니다.
 
 ## 감사·참고

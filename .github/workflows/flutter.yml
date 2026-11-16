@@ -42,6 +42,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # 고정: stable 3.50부터 package:flutter/material.dart가 폐기 예정 info로 analyze를 실패시킴.
+          # 10/27 통과 버전. 기기 빌드는 flutter-atlas 3.27.4(README 「요구사항」)
+          flutter-version: 3.47.8
           cache: true
       - run: flutter pub get
       - name: Check Dart formatting
